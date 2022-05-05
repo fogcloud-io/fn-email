@@ -1,8 +1,10 @@
-package function
+package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"log"
+	"net/http"
 	"net/smtp"
 	"os"
 )
@@ -24,6 +26,22 @@ func Handle(req []byte) string {
 		return err.Error()
 	}
 	return ""
+}
+
+func Handler(w http.ResponseWriter, r *http.Request) {
+	reqBytes, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	err = sendEmail(formatEmailBody(Subject, reqBytes))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	return
 }
 
 func sendEmail(msg []byte) error {
